@@ -6,36 +6,51 @@ class Signin extends React.Component {
     this.state = {
       signinEmail: "",
       signinPassword: "",
+      error: {
+        email: "",
+        password: "",
+      },
     };
-  }
-  onEmailChange(event) {
-    this.setState({ signinEmail: event.target.value });
-  }
-
-  onPasswordChange(event) {
-    this.setState({ signinPassword: event.target.value });
   }
 
   onSubmitSignIn() {
-    const { signinEmail, signinPassword } = this.state;
-    fetch("http://localhost:300/signin", {
+    const { signinEmail, signinPassword, error } = this.state;
+    let hasError = false;
+    if (
+      signinEmail.length < 1 ||
+      /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(
+        signinEmail
+      )
+    ) {
+      error.email = "Please put a valid email";
+      hasError = true;
+    }
+    if (signinPassword.length < 1) {
+      error.password = "Please put a valid password";
+      hasError = true;
+    }
+    if (hasError) {
+      return this.setState({ error });
+    }
+    fetch("http://localhost:3000/signin", {
       method: "post",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         email: signinEmail,
         password: signinPassword,
-      })
-        .then((response) => response.json())
-        .then((user) => {
-          if (user?.id) {
-            this.props.onLoaduser(user);
-            this.props.onRouteChange("home");
-          }
-        }),
-    });
+      }),
+    })
+      .then((response) => response.json())
+      .then((user) => {
+        if (user?.id) {
+          this.props.onLoaduser(user);
+          this.props.onRouteChange("home");
+        }
+      });
   }
 
   render() {
+    const { error } = this.state;
     const { onRouteChange } = this.props;
     return (
       <article className="br3 ba dark-gray b--black-10 mv4 w-100 w-50-m w-25-l mw6 shadow-5 center">
@@ -52,8 +67,11 @@ class Signin extends React.Component {
                   type="email"
                   name="email-address"
                   id="email-address"
-                  onChange={(event) => this.onEmailChange(event)}
+                  onChange={(event) =>
+                    this.setState({ signinEmail: event.target.value })
+                  }
                 />
+                <label className="db red fw6 lh-copy f6">{error.email}</label>
               </div>
               <div className="mv3">
                 <label className="db fw6 lh-copy f6" htmlFor="password">
@@ -64,8 +82,13 @@ class Signin extends React.Component {
                   type="password"
                   name="password"
                   id="password"
-                  onChange={(event) => this.onEmailChange(event)}
+                  onChange={(event) =>
+                    this.setState({ signinPassword: event.target.value })
+                  }
                 />
+                <label className="db red fw6 lh-copy f6">
+                  {error.password}
+                </label>
               </div>
             </fieldset>
             <div className="">

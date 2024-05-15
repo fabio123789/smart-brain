@@ -9,24 +9,23 @@ import Signin from "./components/Signin/Signin";
 import ParticlesBg from "particles-bg";
 import Register from "./components/register/Register";
 
-const MODEL_ID = "face-detection";
-
+const defaultState = {
+  input: "",
+  imageUrl: "",
+  box: {},
+  route: "signin",
+  user: {
+    id: "",
+    name: "",
+    email: "",
+    entries: 0,
+    joined: "",
+  },
+};
 class App extends Component {
   constructor() {
     super();
-    this.state = {
-      input: "",
-      imageUrl: "",
-      box: {},
-      route: "signin",
-      user: {
-        id: "",
-        name: "",
-        email: "",
-        entries: 0,
-        joined: "",
-      },
-    };
+    this.state = defaultState;
   }
 
   loaduser(user) {
@@ -41,9 +40,7 @@ class App extends Component {
     });
   }
 
-  calculateFaceLocation = (data) => {
-    const faceDetected =
-      data.outputs[0].data.regions[0].region_info.bounding_box;
+  calculateFaceLocation = (faceDetected = {}) => {
     const image = document.getElementById("inputImage");
     const width = Number(image.width);
     const height = Number(image.height);
@@ -55,73 +52,35 @@ class App extends Component {
     };
   };
 
-  displayFaceBox = (box) => {
-    console.log(box);
-    this.setState({ box });
-  };
-
-  onInputChange = (event) => {
-    this.setState({ input: event.target.value });
-  };
-
-  getRequestOptions(imageUrl) {
-    const PAT = "f3178ddee9774b33be0ad1d230abe9d2";
-    const USER_ID = "gkyj8c6d3cgz";
-    const APP_ID = "test";
-
-    const raw = JSON.stringify({
-      user_app_id: {
-        user_id: USER_ID,
-        app_id: APP_ID,
-      },
-      inputs: [
-        {
-          data: {
-            image: {
-              url: imageUrl,
-            },
-          },
-        },
-      ],
-    });
-
-    return {
-      method: "POST",
-      headers: {
-        Accept: "application/json",
-        Authorization: "Key " + PAT,
-      },
-      body: raw,
-    };
-  }
-
   onButtonSubmit = () => {
-    const { input, name,user } = this.state;
+    const { input, user } = this.state;
     this.setState({ imageUrl: input });
-    fetch(
-      "https://api.clarifai.com/v2/models/" + MODEL_ID + "/outputs",
-      this.getRequestOptions(input)
-    )
+    fetch("http://localhost:3000/imageUrl", {
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        input,
+      }),
+    })
       .then((response) => response.json())
       .then((result) => {
         if (result) {
           fetch("http://localhost:3000/image", {
-            method: "post",
+            method: "put",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              id: name.id,
+              id: user.id,
             }),
-          }).then(response => response.json()).then(count => {
-            this.setState({user: {...user, entries: count }})
-          });
+          })
+            .then((response) => response.json())
+            .then((count) => {
+              this.setState({ user: { ...user, entries: count } });
+            })
+            .catch((error) => console.log("error", error));
         }
-        this.displayFaceBox(this.calculateFaceLocation(result));
+        this.setState({ box: this.calculateFaceLocation(result) });
       })
       .catch((error) => console.log("error", error));
-  };
-
-  onRouteChange = (route) => {
-    this.setState({ route });
   };
 
   render() {
@@ -132,20 +91,20 @@ class App extends Component {
         {route === "signin" ? (
           <Signin
             onLoaduser={(data) => this.loaduser(data)}
-            onRouteChange={this.onRouteChange}
+            onRouteChange={(route) => this.setState({ route })}
           />
         ) : route === "register" ? (
           <Register
-            onRouteChange={this.onRouteChange}
+            onRouteChange={(route) => this.setState({ route })}
             onLoaduser={(data) => this.loaduser(data)}
           />
         ) : (
           <>
-            <Navigation onRouteChange={this.onRouteChange} />
+            <Navigation onRouteChange={() => this.setState(defaultState)} />
             <Logo />
             <Rank name={user.name} entries={user.entries} />
             <ImageLinkForm
-              onInputChange={this.onInputChange}
+              onInputChange={(event) => this.setState({ input: event.target.value })}
               onButtonSubmit={this.onButtonSubmit}
             />
             <FaceRecognition box={box} imageUrl={imageUrl} />
