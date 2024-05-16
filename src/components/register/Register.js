@@ -24,7 +24,7 @@ class Register extends React.Component {
     }
     if (
       email.length < 1 ||
-      /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(
+      !/^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(
         email
       )
     ) {
@@ -109,7 +109,9 @@ class Register extends React.Component {
                   name="password"
                   id="password"
                 />
-                <label className="db red fw6 lh-copy f6">{error.password}</label>
+                <label className="db red fw6 lh-copy f6">
+                  {error.password}
+                </label>
               </div>
             </fieldset>
             <div className="">
