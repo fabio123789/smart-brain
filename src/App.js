@@ -55,7 +55,7 @@ class App extends Component {
   onButtonSubmit = () => {
     const { input, user } = this.state;
     this.setState({ imageUrl: input });
-    fetch("http://localhost:3000/imageUrl", {
+    fetch(`${process.env.BackendUrl}/imageUrl`, {
       method: "post",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -65,7 +65,7 @@ class App extends Component {
       .then((response) => response.json())
       .then((result) => {
         if (result) {
-          fetch("http://localhost:3000/image", {
+          fetch(`${process.env.BackendUrl}/image`, {
             method: "put",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
