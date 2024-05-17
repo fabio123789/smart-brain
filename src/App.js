@@ -12,7 +12,7 @@ import Register from "./components/register/Register";
 const defaultState = {
   input: "",
   imageUrl: "",
-  box: {},
+  boxes: [{}],
   route: "signin",
   user: {
     id: "",
@@ -40,16 +40,20 @@ class App extends Component {
     });
   }
 
-  calculateFaceLocation = (faceDetected = {}) => {
+  calculateFaceLocation = (facesDetected = []) => {
+    const newFacesDetected = [];
     const image = document.getElementById("inputImage");
     const width = Number(image.width);
     const height = Number(image.height);
-    return {
-      leftCol: faceDetected.left_col * width,
-      topRow: faceDetected.top_row * height,
-      rightCol: width - faceDetected.right_col * width,
-      bottomRow: height - faceDetected.bottom_row * height,
-    };
+    for (const faceDetected of facesDetected) {
+      newFacesDetected.push({
+        leftCol: faceDetected.region_info.bounding_box.left_col * width,
+        topRow: faceDetected.region_info.bounding_box.top_row * height,
+        rightCol: width - faceDetected.region_info.bounding_box.right_col * width,
+        bottomRow: height - faceDetected.region_info.bounding_box.bottom_row * height,
+      });
+    }
+    return newFacesDetected;
   };
 
   onButtonSubmit = () => {
@@ -70,6 +74,7 @@ class App extends Component {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               id: user.id,
+              entries: result.length,
             }),
           })
             .then((response) => response.json())
@@ -78,13 +83,13 @@ class App extends Component {
             })
             .catch((error) => console.log("error", error));
         }
-        this.setState({ box: this.calculateFaceLocation(result) });
+        this.setState({ boxes: this.calculateFaceLocation(result) });
       })
       .catch((error) => console.log("error", error));
   };
 
   render() {
-    const { imageUrl, box, route, user } = this.state;
+    const { imageUrl, boxes, route, user } = this.state;
     return (
       <div className="App">
         <ParticlesBg color="#FFFFFF" type="cobweb" bg={true} />
@@ -104,10 +109,12 @@ class App extends Component {
             <Logo />
             <Rank name={user.name} entries={user.entries} />
             <ImageLinkForm
-              onInputChange={(event) => this.setState({ input: event.target.value })}
+              onInputChange={(event) =>
+                this.setState({ input: event.target.value })
+              }
               onButtonSubmit={this.onButtonSubmit}
             />
-            <FaceRecognition box={box} imageUrl={imageUrl} />
+            <FaceRecognition boxes={boxes} imageUrl={imageUrl} />
           </>
         )}
       </div>
