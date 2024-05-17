@@ -38,7 +38,7 @@ class Register extends React.Component {
     if (hasError) {
       return this.setState({ error });
     }
-    fetch(`${process.env.backendUrl}/register`, {
+    fetch(`https://smartbrainapi-yurz.onrender.com/register`, {
       method: "post",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
