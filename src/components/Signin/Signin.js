@@ -32,7 +32,7 @@ class Signin extends React.Component {
     if (hasError) {
       return this.setState({ error });
     }
-    fetch(`${process.env.BackendUrl}/signin`, {
+    fetch(`${process.env.BackendUrl}signin`, {
       method: "post",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
